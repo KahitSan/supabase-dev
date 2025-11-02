@@ -68,13 +68,101 @@ start_plan() {
   echo -e "${YELLOW}Stopping existing containers...${NC}"
   docker compose down > /dev/null 2>&1 || true
 
+  # Define resource limits for each plan
+  local mem_limit cpu_quota
+  case "$plan" in
+    512mb)
+      mem_limit="512M"
+      cpu_quota="100%"  # 1 CPU = 100%
+      ;;
+    1gb)
+      mem_limit="1G"
+      cpu_quota="100%"
+      ;;
+    2gb)
+      mem_limit="2G"
+      cpu_quota="100%"
+      ;;
+    2gb-2cpu)
+      mem_limit="2G"
+      cpu_quota="200%"  # 2 CPUs = 200%
+      ;;
+    4gb)
+      mem_limit="4G"
+      cpu_quota="200%"
+      ;;
+    8gb)
+      mem_limit="8G"
+      cpu_quota="400%"  # 4 CPUs = 400%
+      ;;
+    16gb)
+      mem_limit="16G"
+      cpu_quota="800%"  # 8 CPUs = 800%
+      ;;
+    unlimited)
+      mem_limit=""
+      cpu_quota=""
+      ;;
+  esac
+
   # Start with appropriate limits
   if [ "$plan" == "unlimited" ]; then
     echo -e "${BLUE}Starting without resource limits...${NC}"
     docker compose up -d
   else
-    echo -e "${BLUE}Starting with $plan limits...${NC}"
-    docker compose -f docker-compose.yml -f docker-compose.do-${plan}.yml up -d
+    echo -e "${BLUE}Starting with total limit: $mem_limit RAM, $cpu_quota CPU...${NC}"
+    echo -e "${YELLOW}Using systemd slice to enforce limits on entire stack${NC}"
+
+    # Create a persistent systemd slice with resource limits
+    SLICE_NAME="supabase-limited"
+
+    # Create slice unit file
+    sudo tee /run/systemd/system/${SLICE_NAME}.slice > /dev/null << EOF
+[Unit]
+Description=Supabase Resource Limited Slice ($mem_limit RAM, $cpu_quota CPU)
+Before=slices.target
+
+[Slice]
+MemoryMax=$mem_limit
+CPUQuota=$cpu_quota
+EOF
+
+    # Reload systemd to recognize the new slice
+    sudo systemctl daemon-reload
+    sudo systemctl start ${SLICE_NAME}.slice
+
+    # Start Docker Compose with the cgroup parent
+    echo -e "${BLUE}Starting containers under ${SLICE_NAME}.slice...${NC}"
+
+    # Create temporary compose file with cgroup_parent set
+    TEMP_OVERRIDE=$(mktemp --suffix=.yml)
+    cat > "$TEMP_OVERRIDE" << EOF_OVERRIDE
+# Temporary override to set cgroup_parent for all services
+services:
+  studio:
+    cgroup_parent: ${SLICE_NAME}.slice
+  kong:
+    cgroup_parent: ${SLICE_NAME}.slice
+  auth:
+    cgroup_parent: ${SLICE_NAME}.slice
+  rest:
+    cgroup_parent: ${SLICE_NAME}.slice
+  storage:
+    cgroup_parent: ${SLICE_NAME}.slice
+  imgproxy:
+    cgroup_parent: ${SLICE_NAME}.slice
+  meta:
+    cgroup_parent: ${SLICE_NAME}.slice
+  supavisor:
+    cgroup_parent: ${SLICE_NAME}.slice
+  db:
+    cgroup_parent: ${SLICE_NAME}.slice
+EOF_OVERRIDE
+
+    docker compose -f docker-compose.yml -f docker-compose.do-${plan}.yml -f "$TEMP_OVERRIDE" up -d
+    rm -f "$TEMP_OVERRIDE"
+
+    echo -e "${GREEN}✓ Containers running under resource-limited slice${NC}"
   fi
 
   echo ""
@@ -92,6 +180,15 @@ start_plan() {
 stop_services() {
   echo -e "${BLUE}Stopping all services...${NC}"
   docker compose down
+
+  # Clean up systemd slice if it exists
+  if systemctl is-active --quiet supabase-limited.slice 2>/dev/null; then
+    echo -e "${YELLOW}Cleaning up systemd slice...${NC}"
+    sudo systemctl stop supabase-limited.slice 2>/dev/null || true
+    sudo rm -f /run/systemd/system/supabase-limited.slice 2>/dev/null || true
+    sudo systemctl daemon-reload
+  fi
+
   echo -e "${GREEN}✓ Services stopped${NC}"
 }
 
@@ -108,6 +205,37 @@ show_stats() {
   echo -e "${BLUE}Totals:${NC}"
   echo "  CPU: ${TOTAL_CPU}%"
   echo "  Memory: ${TOTAL_MEM} MiB ($(awk "BEGIN {printf \"%.2f\", $TOTAL_MEM/1024}") GiB)"
+
+  # Show systemd limits if active
+  if systemctl is-active --quiet supabase-limited.slice 2>/dev/null; then
+    echo ""
+    echo -e "${BLUE}Systemd Resource Limits (supabase-limited.slice):${NC}"
+    MEM_MAX=$(systemctl show supabase-limited.slice -p MemoryMax --value)
+    CPU_QUOTA=$(systemctl show supabase-limited.slice -p CPUQuotaPerSecUSec --value)
+
+    # Convert memory to human readable
+    if [ "$MEM_MAX" -lt 1073741824 ]; then
+      MEM_DISPLAY="$(awk "BEGIN {printf \"%.0f\", $MEM_MAX/1048576}")M"
+    else
+      MEM_DISPLAY="$(awk "BEGIN {printf \"%.1f\", $MEM_MAX/1073741824}")G"
+    fi
+    echo "  MemoryMax: $MEM_DISPLAY"
+
+    # Parse CPU quota (format: "1s" = 100% of 1 CPU, "2s" = 200% = 2 CPUs)
+    if [ "$CPU_QUOTA" != "infinity" ]; then
+      # Extract number from format like "1s", "2s", etc.
+      CPU_SECONDS=$(echo "$CPU_QUOTA" | sed 's/s$//')
+      if [[ "$CPU_SECONDS" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        CPU_PERCENT=$(awk "BEGIN {printf \"%.0f\", $CPU_SECONDS * 100}")
+        CPU_CORES=$(awk "BEGIN {printf \"%.1f\", $CPU_SECONDS}")
+        echo "  CPUQuota: ${CPU_PERCENT}% (${CPU_CORES} CPUs)"
+      else
+        echo "  CPUQuota: $CPU_QUOTA"
+      fi
+    else
+      echo "  CPUQuota: unlimited"
+    fi
+  fi
 }
 
 run_benchmark() {

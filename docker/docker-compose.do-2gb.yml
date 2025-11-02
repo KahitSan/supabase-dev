@@ -1,84 +1,24 @@
-# DigitalOcean Shared CPU: 2GB RAM / 1 CPU ($12/mo)
-# Usage: docker compose -f docker-compose.yml -f docker-compose.do-2gb.yml up
+# DigitalOcean Shared CPU: 2GB RAM / 1 CPU
+# Total stack limit enforced by do-limits.sh using systemd
+# Services share resources dynamically - no per-service limits
 
 services:
-  studio:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.12'
-          memory: 220M
-
-  kong:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 280M
-
-  auth:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.06'
-          memory: 60M
-
-  rest:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.06'
-          memory: 40M
-
-  storage:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 140M
-
-  imgproxy:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.06'
-          memory: 60M
-
-  meta:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 100M
-
-  supavisor:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.15'
-          memory: 280M
-
   db:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 868M
     command:
-      [
-        "postgres",
-        "-c", "config_file=/etc/postgresql/postgresql.conf",
-        "-c", "log_min_messages=fatal",
-        "-c", "shared_buffers=128MB",
-        "-c", "effective_cache_size=256MB",
-        "-c", "maintenance_work_mem=32MB",
-        "-c", "checkpoint_completion_target=0.9",
-        "-c", "wal_buffers=4MB",
-        "-c", "default_statistics_target=100",
-        "-c", "work_mem=4MB",
-        "-c", "max_worker_processes=2",
-        "-c", "max_parallel_workers_per_gather=1",
-        "-c", "max_parallel_workers=2"
-      ]
-
-# Total: 1.0 CPU, 2048MB RAM
+        [
+          "postgres",
+          "-c", "config_file=/etc/postgresql/postgresql.conf",
+          "-c", "log_min_messages=fatal",
+          "-c", "shared_buffers=128MB",
+          "-c", "effective_cache_size=256MB",
+          "-c", "maintenance_work_mem=32MB",
+          "-c", "checkpoint_completion_target=0.9",
+          "-c", "wal_buffers=4MB",
+          "-c", "default_statistics_target=100",
+          "-c", "work_mem=4MB",
+          "-c", "max_worker_processes=2",
+          "-c", "max_parallel_workers_per_gather=1",
+          "-c", "max_parallel_workers=2"
+        ]
+  
+  # Total: 1.0 CPU, 2048MB RAM
