@@ -6,18 +6,18 @@ Benchmark results for Supabase running with different DigitalOcean Shared CPU pl
 
 ## Testing Tool
 
-Use `benchmark.sh` to start Docker with specific resource limits:
+Use `do-limits.sh` to start Docker with specific resource limits:
 
 ```bash
 cd docker
 
 # Start with specific plan limits
-./benchmark.sh start 4gb          # Start with 4GB limits
-./benchmark.sh stats              # Check resource usage
-./benchmark.sh stop               # Stop services
+./do-limits.sh start 4gb          # Start with 4GB limits
+./do-limits.sh stats              # Check resource usage
+./do-limits.sh stop               # Stop services
 
 # Run full benchmark
-./benchmark.sh test 2gb           # Test with 2GB limits
+./do-limits.sh test 2gb           # Test with 2GB limits
 ```
 
 See [README.md](./README.md) and [WORKFLOWS.md](./WORKFLOWS.md) for usage details.
@@ -353,23 +353,23 @@ All benchmarks use the same optimized Supabase stack with:
 cd docker
 
 # Test specific plan
-./benchmark.sh test 4gb
+./do-limits.sh test 4gb
 
 # Test all plans (takes 30-45 min)
-./benchmark.sh test-all
+./do-limits.sh test-all
 
 # Manual testing
-./benchmark.sh start 2gb
+./do-limits.sh start 2gb
 ./load-test.sh
-./benchmark.sh stats
-./benchmark.sh stop
+./do-limits.sh stats
+./do-limits.sh stop
 ```
 
 ---
 
 ## Files
 
-- **benchmark.sh** - Helper to start Docker with limits
+- **do-limits.sh** - Helper to start Docker with limits
 - **load-test.sh** - Database performance testing
 - **docker-compose.do-*.yml** - Resource limit configurations
 - **README.md** - Quick start guide

@@ -38,15 +38,15 @@ cd docker && docker compose down
 cd docker
 
 # Start with specific DigitalOcean plan limits
-./benchmark.sh start 4gb          # 4GB / 2 CPU plan ($24/mo)
-./benchmark.sh start 2gb          # 2GB / 1 CPU plan ($12/mo)
-./benchmark.sh start unlimited    # No limits (default)
+./do-limits.sh start 4gb          # 4GB / 2 CPU plan ($24/mo)
+./do-limits.sh start 2gb          # 2GB / 1 CPU plan ($12/mo)
+./do-limits.sh start unlimited    # No limits (default)
 
 # Check resource usage
-./benchmark.sh stats
+./do-limits.sh stats
 
 # Stop services
-./benchmark.sh stop
+./do-limits.sh stop
 ```
 
 See [DIGITALOCEAN-BENCHMARKS.md](./DIGITALOCEAN-BENCHMARKS.md) for all available plans.

@@ -30,22 +30,22 @@ cd docker && docker compose restart db
 
 ### Startup with Resource Limits (Production Simulation)
 
-Use the benchmark helper to start with DigitalOcean plan limits:
+Use the `do-limits.sh` helper to start with DigitalOcean plan limits:
 
 ```bash
 cd docker
 
 # Start with specific plan limits
-./benchmark.sh start 4gb          # 4GB / 2 CPU ($24/mo) - Recommended
-./benchmark.sh start 2gb          # 2GB / 1 CPU ($12/mo) - Minimum
-./benchmark.sh start 8gb          # 8GB / 4 CPU ($48/mo) - High traffic
-./benchmark.sh start unlimited    # No limits (default)
+./do-limits.sh start 4gb          # 4GB / 2 CPU ($24/mo) - Recommended
+./do-limits.sh start 2gb          # 2GB / 1 CPU ($12/mo) - Minimum
+./do-limits.sh start 8gb          # 8GB / 4 CPU ($48/mo) - High traffic
+./do-limits.sh start unlimited    # No limits (default)
 
 # Check resource usage
-./benchmark.sh stats
+./do-limits.sh stats
 
 # Stop services
-./benchmark.sh stop
+./do-limits.sh stop
 ```
 
 **Available Plans:**
