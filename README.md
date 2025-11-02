@@ -16,8 +16,10 @@ Access dashboard: **http://localhost:8000**
 
 ## Common Commands
 
+### Standard Startup (No Limits)
+
 ```bash
-# Start Supabase
+# Start Supabase without resource limits
 ./setup.sh
 
 # Reset everything (⚠️ deletes all data)
@@ -29,6 +31,25 @@ cd docker && docker compose logs -f
 # Stop services
 cd docker && docker compose down
 ```
+
+### Startup with Resource Limits (DigitalOcean Simulation)
+
+```bash
+cd docker
+
+# Start with specific DigitalOcean plan limits
+./benchmark.sh start 4gb          # 4GB / 2 CPU plan ($24/mo)
+./benchmark.sh start 2gb          # 2GB / 1 CPU plan ($12/mo)
+./benchmark.sh start unlimited    # No limits (default)
+
+# Check resource usage
+./benchmark.sh stats
+
+# Stop services
+./benchmark.sh stop
+```
+
+See [DIGITALOCEAN-BENCHMARKS.md](./DIGITALOCEAN-BENCHMARKS.md) for all available plans.
 
 ---
 
@@ -59,7 +80,8 @@ See `docker/.env` for all configuration.
 ## Documentation
 
 - **[WORKFLOWS.md](./WORKFLOWS.md)** - Daily operations, backups, and troubleshooting
-- **[OPTIMIZATION.md](./OPTIMIZATION.md)** - Resource usage metrics and how to re-enable services
+- **[OPTIMIZATION.md](./OPTIMIZATION.md)** - Resource usage metrics and disabled services
+- **[DIGITALOCEAN-BENCHMARKS.md](./DIGITALOCEAN-BENCHMARKS.md)** - Deployment sizing and resource limits
 - **[CLAUDE.md](./CLAUDE.md)** - Quick reference for development with Claude Code
 - **[Official Supabase Docs](https://supabase.com/docs/guides/self-hosting)** - Self-hosting guide
 

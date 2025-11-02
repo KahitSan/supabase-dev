@@ -4,6 +4,60 @@ Comprehensive benchmarking results for running optimized Supabase on all Digital
 
 ---
 
+## 🚀 Quick Start
+
+The `benchmark.sh` script is a **helper tool to start Docker with resource limits** that simulate different DigitalOcean plans.
+
+### Start with Resource Limits
+
+```bash
+cd docker
+
+# Start with 4GB plan limits (recommended for production)
+./benchmark.sh start 4gb
+
+# Start with 2GB plan limits (minimum production)
+./benchmark.sh start 2gb
+
+# Start without limits (development - uses your machine's resources)
+./benchmark.sh start unlimited
+```
+
+### Check Resource Usage
+
+```bash
+# See current memory and CPU usage
+./benchmark.sh stats
+```
+
+### Stop Services
+
+```bash
+# Stop all services
+./benchmark.sh stop
+```
+
+### Common Use Cases
+
+**Development:**
+```bash
+./benchmark.sh start unlimited    # No limits, use full machine resources
+```
+
+**Testing Production Limits:**
+```bash
+./benchmark.sh start 4gb          # Test with 4GB DigitalOcean plan limits
+./benchmark.sh stats              # Monitor resource usage
+```
+
+**Switching Plans:**
+```bash
+./benchmark.sh stop               # Stop current
+./benchmark.sh start 2gb          # Start with different limits
+```
+
+---
+
 ## Quick Reference
 
 | Plan | RAM | CPU | Cost/mo | Verdict |

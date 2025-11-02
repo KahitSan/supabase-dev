@@ -6,8 +6,10 @@ Common workflows for working with this Supabase infrastructure.
 
 ## Daily Operations
 
+### Standard Startup (No Resource Limits)
+
 ```bash
-# Start Supabase
+# Start Supabase without resource limits
 ./setup.sh
 
 # Stop services
@@ -25,6 +27,38 @@ cd docker && docker compose ps
 # Restart specific service
 cd docker && docker compose restart db
 ```
+
+### Startup with Resource Limits (Production Simulation)
+
+Use the benchmark helper to start with DigitalOcean plan limits:
+
+```bash
+cd docker
+
+# Start with specific plan limits
+./benchmark.sh start 4gb          # 4GB / 2 CPU ($24/mo) - Recommended
+./benchmark.sh start 2gb          # 2GB / 1 CPU ($12/mo) - Minimum
+./benchmark.sh start 8gb          # 8GB / 4 CPU ($48/mo) - High traffic
+./benchmark.sh start unlimited    # No limits (default)
+
+# Check resource usage
+./benchmark.sh stats
+
+# Stop services
+./benchmark.sh stop
+```
+
+**Available Plans:**
+- `512mb` - $4/mo (not viable)
+- `1gb` - $6/mo (dev/test only)
+- `2gb` - $12/mo (minimum production)
+- `2gb-2cpu` - $18/mo (better performance)
+- `4gb` - $24/mo (recommended) ⭐
+- `8gb` - $48/mo (high traffic)
+- `16gb` - $96/mo (enterprise)
+- `unlimited` - No limits (development)
+
+See [DIGITALOCEAN-BENCHMARKS.md](../DIGITALOCEAN-BENCHMARKS.md) for detailed comparison.
 
 ---
 
