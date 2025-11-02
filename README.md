@@ -3,6 +3,7 @@
 Optimized Docker Compose setup for self-hosting Supabase with reduced resource usage. Suitable for both production and development environments.
 
 > **Based on**: [supabase/supabase](https://github.com/supabase/supabase) - The official Supabase repository
+> **Supabase Version**: Studio 2025.06.30 | PostgreSQL 15.8.1.060
 
 ---
 
@@ -156,6 +157,25 @@ supabase-dev/
 ---
 
 **Status**: ✅ Production Ready | **Last Updated**: November 2, 2025
+
+---
+
+## Service Versions
+
+| Service | Version |
+|---------|---------|
+| **Supabase Studio** | 2025.06.30-sha-6f5982d |
+| **PostgreSQL** | 15.8.1.060 |
+| **GoTrue (Auth)** | v2.177.0 |
+| **PostgREST** | v12.2.12 |
+| **Storage API** | v1.25.7 |
+| **Postgres Meta** | v0.91.0 |
+| **Supavisor (Pooler)** | 2.5.7 |
+
+*Disabled services (can be re-enabled):*
+- Realtime: v2.34.47
+- Edge Runtime: v1.67.4
+- Logflare: 1.14.2
 
 ---
 
