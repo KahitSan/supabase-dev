@@ -120,12 +120,33 @@ Analytics requires multiple changes:
 
 ## Resource Savings
 
-Estimated resource savings with this configuration:
+**Measured Resource Usage (Optimized Stack):**
 
-- **Containers**: 4 fewer containers running (realtime, analytics, functions, vector)
-- **Memory**: ~500-800MB reduction
-- **CPU**: Reduced background processing overhead
-- **Disk I/O**: No log collection or analytics writes
+- **Total Memory**: ~1.61 GB (1,613 MiB)
+- **Total CPU**: ~11.5% (idle)
+- **Containers**: 9 running
+
+**Disabled Services (Not Consuming Resources):**
+- realtime
+- analytics (logflare)
+- edge-functions
+- vector
+
+**Estimated Savings**: 450-700 MB compared to full stack
+
+**Individual Container Usage:**
+
+| Container | Memory | CPU % |
+|-----------|--------|-------|
+| kong | 941.8 MiB | 0.20% |
+| pooler | 178.3 MiB | 0.91% |
+| studio | 144.8 MiB | 0.00% |
+| storage | 102.7 MiB | 4.75% |
+| db | 102.4 MiB | 0.04% |
+| meta | 77.9 MiB | 0.62% |
+| imgproxy | 25.2 MiB | 0.00% |
+| auth | 23.0 MiB | 0.00% |
+| rest | 13.2 MiB | 0.09% |
 
 ## Use Cases
 
