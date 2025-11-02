@@ -196,18 +196,29 @@ sudo kill -9 <PID>
 
 Credentials are in `docker/.env`
 
-### Container Ports
+### Active Containers (Optimized Setup)
 
-| Container | Internal Port | External Port |
-|-----------|---------------|---------------|
-| supabase-db | 5432 | 54322 |
-| supabase-auth | 9999 | - |
-| supabase-rest | 3000 | - |
-| supabase-storage | 5000 | - |
-| supabase-meta | 8080 | - |
-| supabase-studio | 3000 | 8000 |
-| kong | 8000 | 8000 |
-| imgproxy | 5001 | - |
+**Running Services (9 containers):**
+
+| Container | Purpose | Internal Port | External Port | Memory |
+|-----------|---------|---------------|---------------|--------|
+| `supabase-kong` | API gateway | 8000 | 8000 | ~942 MB |
+| `supabase-pooler` | Connection pooler | - | 6543 | ~178 MB |
+| `supabase-studio` | Web dashboard | 3000 | 8000 | ~145 MB |
+| `supabase-storage` | File storage | 5000 | - | ~103 MB |
+| `supabase-db` | PostgreSQL database | 5432 | 54322 | ~102 MB |
+| `supabase-meta` | Database metadata | 8080 | - | ~78 MB |
+| `supabase-imgproxy` | Image optimization | 5001 | - | ~25 MB |
+| `supabase-auth` | GoTrue auth server | 9999 | - | ~23 MB |
+| `supabase-rest` | PostgREST API | 3000 | - | ~13 MB |
+
+**Total: ~1.6 GB RAM usage**
+
+**Disabled Services** (not running, see [OPTIMIZATION.md](./OPTIMIZATION.md) to re-enable):
+- `realtime` - WebSocket realtime subscriptions
+- `analytics` - Logflare logging and monitoring
+- `functions` - Edge functions runtime
+- `vector` - Log aggregation
 
 ### Network Flow
 
