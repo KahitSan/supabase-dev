@@ -42,6 +42,8 @@ cd docker && docker compose down
 
 Credentials are in `docker/.env`
 
+**Note**: By default, realtime, analytics, edge functions, and vector logging are disabled to reduce resource usage. See [OPTIMIZATION.md](./OPTIMIZATION.md) to re-enable these services if needed.
+
 ---
 
 ## Configuration
