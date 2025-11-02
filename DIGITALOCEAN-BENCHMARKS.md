@@ -28,15 +28,15 @@ See [README.md](./README.md) and [WORKFLOWS.md](./WORKFLOWS.md) for usage detail
 
 ### Resource Limits per Plan
 
-| Plan | RAM | CPU | Disk | Cost/mo |
-|------|-----|-----|------|---------|
-| 512MB | 512MB | 1 | 10GB | $4 |
-| **1GB** | 1GB | 1 | 25GB | **$6** |
-| **2GB** | 2GB | 1 | 50GB | **$12** |
-| 2GB+2CPU | 2GB | 2 | 60GB | $18 |
-| **4GB** | 4GB | 2 | 80GB | **$24** |
-| 8GB | 8GB | 4 | 160GB | $48 |
-| 16GB | 16GB | 8 | 320GB | $96 |
+| Plan | RAM | CPU | Disk | Cost/mo | Verdict |
+|------|-----|-----|------|---------|---------|
+| 512MB | 512MB | 1 | 10GB | $4 | ❌ Too limited |
+| **1GB** | 1GB | 1 | 25GB | **$6** | ❌ Dev/test only |
+| **2GB** | 2GB | 1 | 50GB | **$12** | ⚠️ Min production |
+| 2GB+2CPU | 2GB | 2 | 60GB | $18 | ✅ Small-medium apps |
+| **4GB** | 4GB | 2 | 80GB | **$24** | ✅ **Recommended** ⭐ |
+| 8GB | 8GB | 4 | 160GB | $48 | ✅ High traffic |
+| 16GB | 16GB | 8 | 320GB | $96 | ✅ Enterprise |
 
 ---
 
