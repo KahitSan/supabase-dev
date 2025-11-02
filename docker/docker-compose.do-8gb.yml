@@ -1,0 +1,84 @@
+# DigitalOcean Shared CPU: 8GB RAM / 4 CPUs ($48/mo)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.do-8gb.yml up
+
+services:
+  studio:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 700M
+
+  kong:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.40'
+          memory: 1024M
+
+  auth:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  rest:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 160M
+
+  storage:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.40'
+          memory: 512M
+
+  imgproxy:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  meta:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.40'
+          memory: 384M
+
+  supavisor:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.55'
+          memory: 1024M
+
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 3878M
+    command:
+      [
+        "postgres",
+        "-c", "config_file=/etc/postgresql/postgresql.conf",
+        "-c", "log_min_messages=fatal",
+        "-c", "shared_buffers=512MB",
+        "-c", "effective_cache_size=1536MB",
+        "-c", "maintenance_work_mem=128MB",
+        "-c", "checkpoint_completion_target=0.9",
+        "-c", "wal_buffers=16MB",
+        "-c", "default_statistics_target=100",
+        "-c", "work_mem=16MB",
+        "-c", "max_worker_processes=8",
+        "-c", "max_parallel_workers_per_gather=4",
+        "-c", "max_parallel_workers=8"
+      ]
+
+# Total: 4.0 CPUs, 8192MB RAM
