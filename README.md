@@ -1,6 +1,6 @@
 # Supabase Self-Hosted Infrastructure
 
-Optimized Docker Compose setup for running Supabase locally with reduced resource usage.
+Optimized Docker Compose setup for self-hosting Supabase with reduced resource usage. Suitable for both production and development environments.
 
 > **Based on**: [supabase/supabase](https://github.com/supabase/supabase) - The official Supabase repository
 
@@ -36,15 +36,16 @@ This repository is an **optimized fork** of the official Supabase self-hosting s
    - Development-focused quick reference
 
 **When to use this fork:**
+- Production deployments on resource-constrained servers (VPS, small droplets)
 - Local development environments
-- Resource-constrained deployments
+- Self-hosted setups where Realtime/Edge Functions aren't needed
 - Learning Supabase internals
-- Quick prototyping
+- Cost-effective production hosting
 
 **When to use official Supabase:**
-- Production deployments
-- Need Realtime/Edge Functions
-- Full feature set required
+- Need Realtime subscriptions or Edge Functions
+- Require full feature set including analytics
+- Enterprise-scale deployments
 
 ---
 
@@ -169,7 +170,8 @@ This repository is a customized fork based on [supabase/supabase](https://github
 
 ### This Fork
 - **Maintained by**: [@KahitSan](https://github.com/KahitSan)
-- **Purpose**: Optimized self-hosting setup for development and resource-constrained environments
+- **Purpose**: Production-ready, optimized self-hosting setup for resource-constrained environments
+- **Use Cases**: Development, production VPS hosting, cost-effective deployments
 - **Changes**: See [What's Different](#whats-different-from-official-supabase) section above
 
 **Note**: This is not an official Supabase project. For official self-hosting documentation, visit [supabase.com/docs/guides/self-hosting](https://supabase.com/docs/guides/self-hosting).
