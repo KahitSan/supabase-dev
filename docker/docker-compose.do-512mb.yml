@@ -1,0 +1,102 @@
+# DigitalOcean Shared CPU: 512MB RAM / 1 CPU ($4/mo)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.do-512mb.yml up
+
+services:
+  studio:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.12'
+          memory: 60M
+        reservations:
+          memory: 40M
+
+  kong:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.08'
+          memory: 70M
+        reservations:
+          memory: 50M
+
+  auth:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 25M
+        reservations:
+          memory: 15M
+
+  rest:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 20M
+        reservations:
+          memory: 10M
+
+  storage:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.08'
+          memory: 50M
+        reservations:
+          memory: 30M
+
+  imgproxy:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 25M
+        reservations:
+          memory: 15M
+
+  meta:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.08'
+          memory: 40M
+        reservations:
+          memory: 25M
+
+  supavisor:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.14'
+          memory: 80M
+        reservations:
+          memory: 60M
+
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: 142M
+        reservations:
+          memory: 100M
+    command:
+      [
+        "postgres",
+        "-c", "config_file=/etc/postgresql/postgresql.conf",
+        "-c", "log_min_messages=fatal",
+        "-c", "shared_buffers=32MB",
+        "-c", "effective_cache_size=64MB",
+        "-c", "maintenance_work_mem=8MB",
+        "-c", "checkpoint_completion_target=0.9",
+        "-c", "wal_buffers=1MB",
+        "-c", "default_statistics_target=50",
+        "-c", "work_mem=1MB",
+        "-c", "max_worker_processes=1",
+        "-c", "max_parallel_workers_per_gather=0",
+        "-c", "max_parallel_workers=1"
+      ]
+
+# Total: 1.0 CPU, 512MB RAM

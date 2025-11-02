@@ -1,0 +1,264 @@
+#!/bin/bash
+
+# DigitalOcean Plan Benchmark Script
+# Easily switch between different resource limits and run benchmarks
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Available plans
+declare -A PLANS
+PLANS[512mb]="512MB / 1 CPU ($4/mo)"
+PLANS[1gb]="1GB / 1 CPU ($6/mo)"
+PLANS[2gb]="2GB / 1 CPU ($12/mo)"
+PLANS[2gb-2cpu]="2GB / 2 CPUs ($18/mo)"
+PLANS[4gb]="4GB / 2 CPUs ($24/mo)"
+PLANS[8gb]="8GB / 4 CPUs ($48/mo)"
+PLANS[16gb]="16GB / 8 CPUs ($96/mo)"
+PLANS[unlimited]="No Limits (Development)"
+
+show_usage() {
+  echo -e "${BLUE}DigitalOcean Plan Benchmark Tool${NC}"
+  echo ""
+  echo "Usage: $0 <command> [plan]"
+  echo ""
+  echo "Commands:"
+  echo "  start <plan>     - Start services with specified plan limits"
+  echo "  stop             - Stop all services"
+  echo "  test <plan>      - Run full benchmark on specified plan"
+  echo "  test-all         - Run benchmarks on all plans"
+  echo "  stats            - Show current resource usage"
+  echo "  list             - List available plans"
+  echo ""
+  echo "Available plans:"
+  for plan in "${!PLANS[@]}"; do
+    echo "  $plan - ${PLANS[$plan]}"
+  done
+  echo ""
+  echo "Examples:"
+  echo "  $0 start 4gb              # Start with 4GB plan limits"
+  echo "  $0 start unlimited        # Start without limits"
+  echo "  $0 test 2gb               # Test 2GB plan"
+  echo "  $0 test-all               # Benchmark all plans"
+  echo "  $0 stats                  # Show resource usage"
+}
+
+start_plan() {
+  local plan=$1
+
+  if [[ ! " ${!PLANS[@]} " =~ " ${plan} " ]]; then
+    echo -e "${RED}Error: Invalid plan '${plan}'${NC}"
+    echo "Run '$0 list' to see available plans"
+    exit 1
+  fi
+
+  echo -e "${BLUE}Starting Supabase with ${PLANS[$plan]}${NC}"
+  echo ""
+
+  # Stop existing containers
+  echo -e "${YELLOW}Stopping existing containers...${NC}"
+  docker compose down > /dev/null 2>&1 || true
+
+  # Start with appropriate limits
+  if [ "$plan" == "unlimited" ]; then
+    echo -e "${BLUE}Starting without resource limits...${NC}"
+    docker compose up -d
+  else
+    echo -e "${BLUE}Starting with $plan limits...${NC}"
+    docker compose -f docker-compose.yml -f docker-compose.do-${plan}.yml up -d
+  fi
+
+  echo ""
+  echo -e "${BLUE}Waiting for services to be healthy...${NC}"
+  sleep 15
+
+  echo ""
+  echo -e "${GREEN}✓ Services started!${NC}"
+  echo ""
+  docker compose ps
+  echo ""
+  echo "Run '$0 stats' to see resource usage"
+}
+
+stop_services() {
+  echo -e "${BLUE}Stopping all services...${NC}"
+  docker compose down
+  echo -e "${GREEN}✓ Services stopped${NC}"
+}
+
+show_stats() {
+  echo -e "${BLUE}Current Resource Usage:${NC}"
+  echo ""
+  docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+  echo ""
+
+  # Calculate totals
+  TOTAL_MEM=$(docker stats --no-stream --format "{{.MemUsage}}" | awk '{print $1}' | sed 's/MiB//g' | awk '{sum+=$1} END {print sum}')
+  TOTAL_CPU=$(docker stats --no-stream --format "{{.CPUPerc}}" | sed 's/%//g' | awk '{sum+=$1} END {print sum}')
+
+  echo -e "${BLUE}Totals:${NC}"
+  echo "  CPU: ${TOTAL_CPU}%"
+  echo "  Memory: ${TOTAL_MEM} MiB ($(awk "BEGIN {printf \"%.2f\", $TOTAL_MEM/1024}") GiB)"
+}
+
+run_benchmark() {
+  local plan=$1
+  local output_file="/tmp/benchmark-${plan}.txt"
+
+  echo -e "${BLUE}========================================${NC}"
+  echo -e "${BLUE}Benchmarking: ${PLANS[$plan]}${NC}"
+  echo -e "${BLUE}========================================${NC}"
+  echo ""
+
+  # Start services
+  start_plan "$plan"
+
+  # Wait for services to stabilize
+  echo ""
+  echo -e "${BLUE}Waiting 10s for services to stabilize...${NC}"
+  sleep 10
+
+  # Capture initial stats
+  echo ""
+  echo -e "${BLUE}📊 Initial Resource Usage:${NC}"
+  show_stats | tee "${output_file}"
+
+  # Run load test
+  echo ""
+  echo -e "${BLUE}🧪 Running load test...${NC}"
+  ./load-test.sh 2>&1 | tee -a "${output_file}" || true
+
+  # Capture final stats
+  echo ""
+  echo -e "${BLUE}📊 Final Resource Usage:${NC}"
+  show_stats | tee -a "${output_file}"
+
+  # Check health
+  echo ""
+  echo -e "${BLUE}🏥 Service Health:${NC}"
+  docker compose ps | tee -a "${output_file}"
+
+  echo ""
+  echo -e "${GREEN}✓ Benchmark complete!${NC}"
+  echo -e "${BLUE}Results saved to: ${output_file}${NC}"
+  echo ""
+
+  # Stop services
+  stop_services
+
+  return 0
+}
+
+run_all_benchmarks() {
+  echo -e "${BLUE}========================================${NC}"
+  echo -e "${BLUE}Running Benchmarks on All Plans${NC}"
+  echo -e "${BLUE}========================================${NC}"
+  echo ""
+
+  local results_dir="/tmp/do-benchmarks-$(date +%Y%m%d_%H%M%S)"
+  mkdir -p "$results_dir"
+
+  # Test each plan except unlimited
+  for plan in 512mb 1gb 2gb 2gb-2cpu 4gb 8gb 16gb; do
+    echo ""
+    echo -e "${YELLOW}Testing $plan...${NC}"
+    run_benchmark "$plan"
+
+    # Move result file
+    mv "/tmp/benchmark-${plan}.txt" "$results_dir/"
+
+    # Brief pause between tests
+    sleep 5
+  done
+
+  echo ""
+  echo -e "${GREEN}========================================${NC}"
+  echo -e "${GREEN}All Benchmarks Complete!${NC}"
+  echo -e "${GREEN}========================================${NC}"
+  echo ""
+  echo -e "${BLUE}Results directory: ${results_dir}${NC}"
+  echo ""
+
+  # Generate summary
+  echo -e "${BLUE}Generating summary...${NC}"
+  generate_summary "$results_dir"
+}
+
+generate_summary() {
+  local results_dir=$1
+  local summary_file="${results_dir}/SUMMARY.md"
+
+  cat > "$summary_file" << 'EOF'
+# DigitalOcean Plan Benchmark Summary
+
+Generated: $(date)
+
+## Test Results
+
+EOF
+
+  for plan in 512mb 1gb 2gb 2gb-2cpu 4gb 8gb 16gb; do
+    echo "### $plan - ${PLANS[$plan]}" >> "$summary_file"
+    echo "" >> "$summary_file"
+    echo '```' >> "$summary_file"
+    grep -A 10 "Initial Resource Usage:" "${results_dir}/benchmark-${plan}.txt" | head -15 >> "$summary_file" || echo "No data" >> "$summary_file"
+    echo '```' >> "$summary_file"
+    echo "" >> "$summary_file"
+  done
+
+  echo -e "${GREEN}✓ Summary generated: ${summary_file}${NC}"
+}
+
+list_plans() {
+  echo -e "${BLUE}Available DigitalOcean Plans:${NC}"
+  echo ""
+  printf "%-15s %s\n" "Plan" "Specs"
+  printf "%-15s %s\n" "----" "-----"
+  for plan in 512mb 1gb 2gb 2gb-2cpu 4gb 8gb 16gb unlimited; do
+    printf "%-15s %s\n" "$plan" "${PLANS[$plan]}"
+  done
+}
+
+# Main script
+case "${1:-}" in
+  start)
+    if [ -z "${2:-}" ]; then
+      echo -e "${RED}Error: Plan name required${NC}"
+      show_usage
+      exit 1
+    fi
+    start_plan "$2"
+    ;;
+  stop)
+    stop_services
+    ;;
+  test)
+    if [ -z "${2:-}" ]; then
+      echo -e "${RED}Error: Plan name required${NC}"
+      show_usage
+      exit 1
+    fi
+    run_benchmark "$2"
+    ;;
+  test-all)
+    run_all_benchmarks
+    ;;
+  stats)
+    show_stats
+    ;;
+  list)
+    list_plans
+    ;;
+  *)
+    show_usage
+    ;;
+esac
