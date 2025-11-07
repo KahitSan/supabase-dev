@@ -1,119 +1,28 @@
-# DigitalOcean Shared CPU Basic Simulation
-# 1 GB RAM / 1 CPU total across all containers
-#
-# Usage: docker compose -f docker-compose.yml -f docker-compose.digitalocean.yml up
+# DigitalOcean Shared CPU: 1GB RAM / 1 CPU
+# Total stack limit enforced by do-limits.sh using systemd
+# Services share resources dynamically - no per-service limits
 
 services:
-  studio:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.15'
-          memory: 120M
-        reservations:
-          memory: 80M
-
-  kong:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 150M
-        reservations:
-          memory: 100M
-
-  auth:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.05'
-          memory: 40M
-        reservations:
-          memory: 20M
-
-  rest:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.05'
-          memory: 30M
-        reservations:
-          memory: 15M
-
-  storage:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 80M
-        reservations:
-          memory: 50M
-
-  imgproxy:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.05'
-          memory: 40M
-        reservations:
-          memory: 20M
-
-  meta:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 60M
-        reservations:
-          memory: 40M
-
-  supavisor:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.15'
-          memory: 150M
-        reservations:
-          memory: 100M
-
   db:
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 330M
-        reservations:
-          memory: 250M
-    # Optimize PostgreSQL for low memory
-    command:
-      [
-        "postgres",
-        "-c", "config_file=/etc/postgresql/postgresql.conf",
-        "-c", "log_min_messages=fatal",
-        "-c", "shared_buffers=64MB",
-        "-c", "effective_cache_size=128MB",
-        "-c", "maintenance_work_mem=16MB",
-        "-c", "checkpoint_completion_target=0.9",
-        "-c", "wal_buffers=2MB",
-        "-c", "default_statistics_target=50",
-        "-c", "random_page_cost=1.1",
-        "-c", "effective_io_concurrency=200",
-        "-c", "work_mem=2MB",
-        "-c", "min_wal_size=512MB",
-        "-c", "max_wal_size=1GB",
-        "-c", "max_worker_processes=2",
-        "-c", "max_parallel_workers_per_gather=1",
-        "-c", "max_parallel_workers=2"
-      ]
-
-# Total allocation: 1.0 CPU, ~1000MB RAM
-# Breakdown:
-# - Database: 0.25 CPU, 330MB (critical)
-# - Kong: 0.10 CPU, 150MB (gateway)
-# - Pooler: 0.15 CPU, 150MB (connections)
-# - Studio: 0.15 CPU, 120MB (dashboard)
-# - Storage: 0.10 CPU, 80MB
-# - Meta: 0.10 CPU, 60MB
-# - Auth: 0.05 CPU, 40MB
-# - Imgproxy: 0.05 CPU, 40MB
-# - REST: 0.05 CPU, 30MB
+      command:
+        [
+          "postgres",
+          "-c", "config_file=/etc/postgresql/postgresql.conf",
+          "-c", "log_min_messages=fatal",
+          "-c", "shared_buffers=64MB",
+          "-c", "effective_cache_size=128MB",
+          "-c", "maintenance_work_mem=16MB",
+          "-c", "checkpoint_completion_target=0.9",
+          "-c", "wal_buffers=2MB",
+          "-c", "default_statistics_target=50",
+          "-c", "random_page_cost=1.1",
+          "-c", "effective_io_concurrency=200",
+          "-c", "work_mem=2MB",
+          "-c", "min_wal_size=512MB",
+          "-c", "max_wal_size=1GB",
+          "-c", "max_worker_processes=2",
+          "-c", "max_parallel_workers_per_gather=1",
+          "-c", "max_parallel_workers=2"
+        ]
+  
+  # Total allocation: 1.0 CPU, ~1000MB RAM
